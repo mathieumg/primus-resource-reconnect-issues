@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Echo</title>
+  <script src="/primus/primus.js"></script>
+</head>
+<body>
+  <script>
+    //
+    // Tell primus to create a new connect to the current domain/port/protocol
+    //
+    var primus = new Primus();
+
+    //
+    // Listen for incoming data and log it in our textarea.
+    //
+    primus.on("data", function received(data) {
+      console.log("data:", data);
+    });
+
+    var primus = Primus.connect("ws://localhost:8095");
+
+    function makeSleep() {
+      console.log("making sleep!")
+      var creature = primus.resource("creature");
+
+      // wait until resource is ready
+      creature.on("ready", function() {
+        console.log("creature ready!")
+        // start calling remote events
+        creature.command("sleep", function(res) {
+          console.log("creature sleeping!")
+          console.log(res);
+        });
+      });
+    }
+
+    makeSleep();
+
+    primus.on("reconnected", function(opts) {
+      primus.resources = {};
+      console.log("It took %d ms to reconnect", opts.duration);
+      makeSleep();
+    });
+  </script>
+</body>
+</html>
